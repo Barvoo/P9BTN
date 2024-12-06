@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Store Simulada</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    .product-card { margin-top: 20px; }
+    .cart-popup {
+      position: fixed;
+      top: 70px;
+      left: 15px;
+      width: 300px;
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      display: none;
+    }
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .card-img-top {
+      object-fit: contain;  /* Mantener la imagen dentro del contenedor sin distorsionar */
+      height: 200px;         /* Fijamos una altura común para todas las imágenes */
+      width: 100%;           /* Hacemos que las imágenes ocupen el 100% del ancho disponible */
+      border-radius: 5px;    /* Bordes redondeados */
+    }
+  </style>
+</head>
+<body>
+
+  <header class="bg-dark text-white text-center py-3">
+    <h1>Apple Store</h1>
+  </header>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="#">Apple</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProducts('iphone')">iPhone</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProducts('mac')">Mac</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProducts('ipad')">iPad</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="showProducts('accessories')">Accesorios</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="toggleCart()">Carrito</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+    <div id="product-container" class="row"></div>
+  </main>
+
+  <!-- Popup de carrito -->
+  <div id="cart-popup" class="cart-popup">
+    <div class="cart-header">
+      <h5>Carrito de Compras</h5>
+      <button onclick="toggleCart()" class="btn-close" aria-label="Close"></button>
+    </div>
+    <ul id="cart-list" class="list-group mb-3"></ul>
+    <p><strong>Total: $<span id="cart-total">0</span></strong></p>
+    <button onclick="clearCart()" class="btn btn-danger btn-sm">Vaciar Carrito</button>
+    <button onclick="openPurchaseModal()" class="btn btn-success btn-sm mt-2">Comprar Todo</button>
+  </div>
+
+  <!-- Modal de compra -->
+  <div class="modal fade" id="purchaseModal" tabindex="-1" aria-labelledby="purchaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="purchaseModalLabel">Formulario de Compra</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="form-purchase">
+            <div class="mb-3">
+              <label for="name" class="form-label">Nombre Completo</label>
+              <input type="text" class="form-control" id="name" required>
+            </div>
+            <div class="mb-3">
+              <label for="address" class="form-label">Dirección de Envío</label>
+              <input type="text" class="form-control" id="address" required>
+            </div>
+            <div class="mb-3">
+              <label for="payment-method" class="form-label">Método de Pago</label>
+              <select class="form-control" id="payment-method" required>
+                <option value="">Selecciona un método</option>
+                <option value="tarjeta">Tarjeta de Crédito</option>
+                <option value="paypal">PayPal</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="payment-details" class="form-label">Detalles de Pago</label>
+              <input type="text" class="form-control" id="payment-details" placeholder="Número de tarjeta o cuenta PayPal" required>
+            </div>
+            <button type="submit" class="btn btn-success">Confirmar Compra</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-white text-center py-3 mt-5">
+    <p>&copy; 2024 Apple Store Simulada</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const products = {
+      iphone: [
+        { name: 'iPhone 16 Pro', description: 'Pantalla de 6.1 pulgadas, 256GB', price: 25999, image: 'https://m.media-amazon.com/images/I/51bMmsxkNoL._AC_SX522_.jpg' },
+        { name: 'iPhone 16 Pro Max', description: 'Pantalla de 6.1 pulgadas, 128GB', price: 30999, image: 'https://m.media-amazon.com/images/I/41hKPlCCx4L._AC_SX522_.jpg' },
+        { name: 'iPhone 16', description: 'Pantalla de 5.4 pulgadas, 128GB', price: 19999, image: 'https://m.media-amazon.com/images/I/41e+tgBu8iL._AC_SL1000_.jpg' },
+        { name: 'iPhone 16 Plus', description: 'Pantalla de 6.7 pulgadas, 512GB', price: 22999, image: 'https://m.media-amazon.com/images/I/41nOtvvisHL._AC_SL1000_.jpg' }
+      ],
+      mac: [
+        { name: 'MacBook Air M3 (2024)', description: 'Pantalla de 13.6 pulgadas, 512GB SSD', price: 30999, image: 'https://m.media-amazon.com/images/I/51+K-2JfXLL._AC_SL1000_.jpg' },
+        { name: 'MacBook Pro M3 (2024)', description: 'Pantalla de 14 pulgadas, 1TB SSD', price: 37999, image: 'https://m.media-amazon.com/images/I/419G6mu2MpL._AC_SL1000_.jpg' },
+        { name: 'iMac 24" M3', description: 'Pantalla de 24 pulgadas, 512GB SSD', price: 31999, image: 'https://m.media-amazon.com/images/I/51hFDIZIdIL._AC_SL1000_.jpg' },
+        { name: 'Mac Mini M3', description: 'Procesador M3, 512GB SSD', price: 15999, image: 'https://m.media-amazon.com/images/I/61rwftkr+wL._AC_SL1500_.jpg' }
+      ],
+      ipad: [
+        { name: 'iPad Air (2024)', description: 'Pantalla de 10.9 pulgadas, 128GB', price: 14499, image: 'https://m.media-amazon.com/images/I/51JxU9OvyIL._AC_SL1000_.jpg' },
+        { name: 'iPad Pro M3', description: 'Pantalla de 11 pulgadas, 256GB', price: 24999, image: 'https://m.media-amazon.com/images/I/51c2l8lQjmL._AC_SL1000_.jpg' },
+        { name: 'iPad Mini (2024)', description: 'Pantalla de 8.3 pulgadas, 64GB', price: 10999, image: 'https://m.media-amazon.com/images/I/41ktVQVr1XL._AC_SL1000_.jpg' }
+      ],
+      accessories: [
+        { name: 'AirPods Pro 2', description: 'Cancelación activa de ruido', price: 4499, image: 'https://m.media-amazon.com/images/I/71wdXHTj1kL._AC_SL1500_.jpg' },
+        { name: 'Apple Watch Ultra', description: 'Pantalla de 49mm, GPS', price: 8599, image: 'https://m.media-amazon.com/images/I/61a99GfKViL._AC_SL1000_.jpg' },
+        { name: 'Magic Keyboard', description: 'Teclado inalámbrico', price: 4499, image: 'https://m.media-amazon.com/images/I/71-rTExDs2L._AC_SL1500_.jpg' },
+        { name: 'Apple Pencil 2', description: 'Lápiz óptico para iPad', price: 2999, image: 'https://m.media-amazon.com/images/I/61cWiDlGsPL._AC_SL1000_.jpg' }
+      ]
+    };
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // Función para mostrar productos por categoría
+    function showProducts(category) {
+      const productContainer = document.getElementById('product-container');
+      productContainer.innerHTML = '';
+      
+      products[category].forEach(product => {
+        const card = document.createElement('div');
+        card.classList.add('col-md-3');
+        card.innerHTML = `
+          <div class="card product-card">
+            <img src="${product.image}" class="card-img-top" alt="${product.name}" onerror="this.onerror=null;this.src='https://via.placeholder.com/200x200?text=Imagen+no+disponible'">
+            <div class="card-body">
+              <h5 class="card-title">${product.name}</h5>
+              <p class="card-text">${product.description}</p>
+              <p class="card-text">$${formatCurrency(product.price)}</p>
+              <button class="btn btn-primary" onclick="addToCart('${product.name}', ${product.price})">Añadir al carrito</button>
+            </div>
+          </div>
+        `;
+        productContainer.appendChild(card);
+      });
+    }
+
+    // Formatear el precio como moneda
+    function formatCurrency(price) {
+      return price.toLocaleString('es-ES', { style: 'currency', currency: 'MXN' });
+    }
+
+    // Función para añadir productos al carrito
+    function addToCart(name, price) {
+      const productIndex = cart.findIndex(product => product.name === name);
+      if (productIndex > -1) {
+        cart[productIndex].quantity++;
+      } else {
+        cart.push({ name, price, quantity: 1 });
+      }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    // Función para renderizar el carrito
+    function renderCart() {
+      const cartList = document.getElementById('cart-list');
+      const cartTotal = document.getElementById('cart-total');
+      
+      cartList.innerHTML = '';
+      let total = 0;
+
+      cart.forEach(product => {
+        const item = document.createElement('li');
+        item.classList.add('list-group-item');
+        item.innerHTML = `
+          ${product.name} - $${formatCurrency(product.price)} x ${product.quantity} 
+          <button class="btn btn-danger btn-sm float-end" onclick="removeFromCart('${product.name}')">Eliminar</button>
+        `;
+        cartList.appendChild(item);
+        total += product.price * product.quantity;
+      });
+
+      cartTotal.textContent = formatCurrency(total);
+    }
+
+    // Función para eliminar productos del carrito
+    function removeFromCart(name) {
+      cart = cart.filter(product => product.name !== name);
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    // Función para vaciar el carrito
+    function clearCart() {
+      cart = [];
+      localStorage.setItem('cart', JSON.stringify(cart));
+      renderCart();
+    }
+
+    // Mostrar el popup del carrito
+    function toggleCart() {
+      const cartPopup = document.getElementById('cart-popup');
+      cartPopup.style.display = (cartPopup.style.display === 'block') ? 'none' : 'block';
+      renderCart();
+    }
+
+    // Función para abrir el modal de compra
+    function openPurchaseModal() {
+      if (cart.length === 0) {
+        alert('El carrito está vacío.');
+        return;
+      }
+
+      const purchaseModal = new bootstrap.Modal(document.getElementById('purchaseModal'));
+      purchaseModal.show();
+    }
+
+    // Validar formulario de compra
+    document.getElementById('form-purchase').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('name').value;
+      const address = document.getElementById('address').value;
+      const paymentMethod = document.getElementById('payment-method').value;
+      const paymentDetails = document.getElementById('payment-details').value;
+
+      if (!name || !address || !paymentMethod || !paymentDetails) {
+        alert('Por favor, completa todos los campos.');
+        return;
+      }
+
+      alert('Compra realizada con éxito.');
+      clearCart();
+      document.getElementById('purchaseModal').querySelector('.btn-close').click();
+    });
+
+    // Mostrar productos al cargar la página
+    showProducts('iphone');
+  </script>
+</body>
+</html>
